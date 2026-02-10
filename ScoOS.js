@@ -88,7 +88,7 @@ export async function main(ns) {
     `;
     col1.innerHTML = `
         <h3 style="color:#7fd1ff; margin:0; padding:0;">Control Pad</h3>
-        <h4 style="color:#7fd1ff; margin:0; padding:0;">UI</h4>
+        <h4 style="color:#7fd1ff; margin-bottom:2px; margin-top:2px; padding:0;">UI</h4>
 
         <button id="btn-mod2" style="
             background:#222; border:1px solid #555; color:#7fd1ff;
@@ -111,7 +111,7 @@ export async function main(ns) {
             <span id="icon-mod4">🟢</span> Guide
         </button>
 
-        <h4 style="color:#7fd1ff; margin:0; padding:0;">Script</h4>
+        <h4 style="color:#7fd1ff; margin-bottom:2px; margin-top:2px; padding:0;">Script</h4>
         <p>Work in progress…</p>
     `;
 
@@ -124,7 +124,7 @@ export async function main(ns) {
         padding-left: 10px;
     `;
     col2.innerHTML = `
-        <p>Work in progress…</p>
+        <div id="server-table" style="font-size:11px; margin-top:4px;"></div>
     `;
 
     // === MODULE 3 : NETWORK MAP ===
@@ -224,7 +224,6 @@ export async function main(ns) {
         function dfs(server, depth = 0, prefixState = []) {
             visited.add(server);
 
-            // Préfixe visuel
             if (depth > 0) {
                 let prefix = "";
                 for (let i = 0; i < depth - 1; i++) {
@@ -238,14 +237,12 @@ export async function main(ns) {
                     `<span style="color:#0ff;">[${iconRoot(server)}|${iconBackdoor(server)}]</span>`
                 );
             } else {
-                // Racine
                 lines.push(
                     `<span style="color:#ff0;">${server}</span> ` +
                     `<span style="color:#0ff;">[${iconRoot(server)}|${iconBackdoor(server)}]</span>`
                 );
             }
 
-            // Enfants
             const neighbors = ns.scan(server).filter(s => !visited.has(s));
 
             neighbors.forEach((n, i) => {
@@ -256,12 +253,78 @@ export async function main(ns) {
 
         dfs("home");
         return lines.join("\n");
+    }
+
+    // === SERVER TABLE FUNCTIONS ===
+    function renderServerTable() {
+        const container = doc.getElementById("server-table");
+        if (!container) return;
+
+        const servers = ns.scan("home")
+            .flatMap(s => getAllServers(s))
+            .filter((v, i, a) => a.indexOf(v) === i)
+            .filter(s => ns.hasRootAccess(s) && ns.getServerMaxRam(s) > 0);
+
+        function getAllServers(start) {
+            const visited = new Set([start]);
+            const stack = [start];
+            while (stack.length) {
+                const host = stack.pop();
+                for (const n of ns.scan(host)) {
+                    if (!visited.has(n)) {
+                        visited.add(n);
+                        stack.push(n);
+                    }
+                }
+            }
+            return [...visited];
         }
+
+        let html = `
+            <table style="border-collapse:collapse; width:100%;">
+                <tr>
+                    <th style="text-align:left; padding:2px 4px;">Name</th>
+                    <th style="text-align:left; padding:2px 4px;">Max RAM</th>
+                    <th style="text-align:left; padding:2px 4px;">Used RAM</th>
+                    <th style="text-align:left; padding:2px 4px;">Threads</th>
+                    <th style="text-align:left; padding:2px 4px;">Scripts</th>
+                </tr>
+        `;
+
+        for (const s of servers) {
+            const max = ns.getServerMaxRam(s);
+            const used = ns.getServerUsedRam(s);
+
+            const processes = ns.ps(s);
+
+            const threadsList = processes.length
+                ? processes.map(p => `${p.threads}`).join("<br>")
+                : "<i>none</i>";
+
+            const scriptList = processes.length
+                ? processes.map(p => `${p.filename} [${p.args.join(", ")}]`).join("<br>")
+                : "<i>none</i>";
+
+            html += `
+                <tr style="border-bottom:1px solid #333;">
+                    <td style="padding:2px 4px;">${s}</td>
+                    <td style="padding:2px 4px;">${max}</td>
+                    <td style="padding:2px 4px;">${used}</td>
+                    <td style="padding:2px 4px;">${threadsList}</td>
+                    <td style="padding:2px 4px;">${scriptList}</td>
+                </tr>
+            `;
+        }
+
+        html += `</table>`;
+        container.innerHTML = html;
+    }
 
     // === MAIN LOOP ===
     while (true) {
         if (!collapsed) {
-            col3.innerHTML = `${buildTree()}`;
+            if (showModule3) col3.innerHTML = `${buildTree()}`;
+            if (showModule2) renderServerTable();
         }
         await ns.sleep(1500);
     }
