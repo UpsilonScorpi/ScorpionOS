@@ -1,3 +1,3 @@
 # ScorpionOS
-OS for BitBurner
+OS for BitBurner\n
 ⚠️ Work in progress

@@ -212,6 +212,7 @@ export async function main(ns) {
     function buildTree() {
         const visited = new Set();
         let lines = [];
+        const pservList = ns.getPurchasedServers();
 
         function iconRoot(server) {
             return ns.hasRootAccess(server) ? "🟢" : "🔴";
@@ -243,7 +244,7 @@ export async function main(ns) {
                 );
             }
 
-            const neighbors = ns.scan(server).filter(s => !visited.has(s));
+            const neighbors = ns.scan(server).filter(s => !visited.has(s)).filter(s => !pservList.includes(s));;
 
             neighbors.forEach((n, i) => {
                 const isLast = i === neighbors.length - 1;
@@ -257,13 +258,26 @@ export async function main(ns) {
 
     // === SERVER TABLE FUNCTIONS ===
     function renderServerTable() {
+        const pservList = ns.getPurchasedServers();
         const container = doc.getElementById("server-table");
         if (!container) return;
 
-        const servers = ns.scan("home")
+        let servers = ns.scan("home")
             .flatMap(s => getAllServers(s))
             .filter((v, i, a) => a.indexOf(v) === i)
-            .filter(s => ns.hasRootAccess(s) && ns.getServerMaxRam(s) > 0);
+            .filter(s => ns.hasRootAccess(s))
+            .filter(s => ns.getServerMaxRam(s) > 0)
+            .filter(s => ns.ps(s).length > 0);
+
+        servers = servers.sort((a, b) => {
+            if (a === "home") return -1;
+            if (b === "home") return 1;
+            const aPriv = pservList.includes(a);
+            const bPriv = pservList.includes(b);
+            if (aPriv && !bPriv) return 1;
+            if (!aPriv && bPriv) return -1;
+            return a.localeCompare(b);
+        });
 
         function getAllServers(start) {
             const visited = new Set([start]);
