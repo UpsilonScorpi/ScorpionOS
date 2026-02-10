@@ -1,0 +1,2 @@
+# ScorpionOS
+OS for BitBurner
