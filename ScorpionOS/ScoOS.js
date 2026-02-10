@@ -8,6 +8,8 @@ export async function main(ns) {
     const old = doc.getElementById(PANEL_ID);
     if (old) old.remove();
 
+    let actionQueue = [];
+
     // === PANEL ===
     const panel = doc.createElement("div");
     panel.id = PANEL_ID;
@@ -112,7 +114,20 @@ export async function main(ns) {
         </button>
 
         <h4 style="color:#7fd1ff; margin-bottom:2px; margin-top:2px; padding:0;">Script</h4>
-        <p>Work in progress…</p>
+
+        <button id="btn-scr1" style="
+            background:#222; border:1px solid #555; color:#7fd1ff;
+            padding:4px 8px; margin:0; cursor:pointer; width:100%;
+        ">
+            <span id="icon-scr1">🔴</span> Contract
+        </button>
+
+        <button id="btn-scr2" style="
+            background:#222; border:1px solid #555; color:#7fd1ff;
+            padding:4px 8px; margin:0; cursor:pointer; width:100%;
+        ">
+            <span id="icon-scr2">🔴</span> Hacknet
+        </button>
     `;
 
     // === MODULE 2 : SERVERS LIST ===
@@ -159,6 +174,9 @@ export async function main(ns) {
     let showModule3 = true;
     let showModule4 = true;
 
+    let runScript1 = false;
+    let runScript2 = false;
+
     doc.getElementById("btn-mod2").onclick = () => {
         showModule2 = !showModule2;
         col2.style.display = showModule2 ? "block" : "none";
@@ -175,6 +193,28 @@ export async function main(ns) {
         showModule4 = !showModule4;
         col4.style.display = showModule4 ? "block" : "none";
         doc.getElementById("icon-mod4").textContent = showModule4 ? "🟢" : "🔴";
+    };
+
+    doc.getElementById("btn-scr1").onclick = () => {
+        runScript1 = !runScript1;
+
+        actionQueue.push({
+            type: "toggle-contract-solver",
+            enable: runScript1
+        });
+
+        doc.getElementById("icon-scr1").textContent = runScript1 ? "🟢" : "🔴";
+    };
+
+    doc.getElementById("btn-scr2").onclick = () => {
+        runScript2 = !runScript2;
+
+        actionQueue.push({
+            type: "toggle-hacknet-opt",
+            enable: runScript2
+        });
+
+        doc.getElementById("icon-scr2").textContent = runScript2 ? "🟢" : "🔴";
     };
 
     // === COLLAPSE ===
@@ -340,6 +380,31 @@ export async function main(ns) {
             if (showModule3) col3.innerHTML = `${buildTree()}`;
             if (showModule2) renderServerTable();
         }
+
+        // Process queued actions
+        while (actionQueue.length > 0) {
+            const action = actionQueue.shift();
+
+            if (action.type === "toggle-contract-solver") {
+                if (action.enable) {
+                    ns.exec("contract-solve.js", "home", 1);
+                } else {
+                    for (const p of ns.ps("home")) {
+                        if (p.filename === "contract-solve.js") ns.kill(p.pid);
+                    }
+                }
+            }
+            else if (action.type === "toggle-hacknet-opt") {
+                if (action.enable) {
+                    ns.exec("hacknet-opt.js", "home", 1);
+                } else {
+                    for (const p of ns.ps("home")) {
+                        if (p.filename === "hacknet-opt.js") ns.kill(p.pid);
+                    }
+                }
+            }
+        }
+
         await ns.sleep(1500);
     }
 }
