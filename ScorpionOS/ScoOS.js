@@ -136,20 +136,6 @@ export async function main(ns) {
     ">
       <span id="icon-scr3">🔴</span> Hacking
     </button>
-
-    <button id="btn-scr4" style="
-      background:#222; border:1px solid #555; color:#7fd1ff;
-      padding:4px 8px; margin:0; cursor:pointer; width:100%;
-    ">
-      <span id="icon-scr4">🔴</span> Private Server
-    </button>
-
-    <button id="btn-scr5" style="
-      background:#222; border:1px solid #555; color:#7fd1ff;
-      padding:4px 8px; margin:0; cursor:pointer; width:100%;
-    ">
-      <span id="icon-scr5">🔴</span> Gain Access
-    </button>
   `;
 
   /** Module 2 : Server Table */
@@ -197,8 +183,6 @@ export async function main(ns) {
   let runScript1 = false;
   let runScript2 = false;
   let runScript3 = false;
-  let runScript4 = false;
-  let runScript5 = false;
 
   doc.getElementById("btn-mod2").onclick = () => {
     showModule2 = !showModule2;
@@ -232,20 +216,8 @@ export async function main(ns) {
 
   doc.getElementById("btn-scr3").onclick = () => {
     runScript3 = !runScript3;
-    actionQueue.push({type: "toggle-hacking", enable: runScript3});
+    actionQueue.push({type: "hacking", enable: runScript3});
     doc.getElementById("icon-scr3").textContent = runScript3 ? "🟢" : "🔴";
-  };
-
-  doc.getElementById("btn-scr4").onclick = () => {
-    runScript4 = !runScript4;
-    actionQueue.push({type: "toggle-private-server", enable: runScript4});
-    doc.getElementById("icon-scr4").textContent = runScript4 ? "🟢" : "🔴";
-  };
-
-  doc.getElementById("btn-scr5").onclick = () => {
-    runScript5 = !runScript5;
-    actionQueue.push({type: "toggle-gain-access", enable: runScript5});
-    doc.getElementById("icon-scr5").textContent = runScript5 ? "🟢" : "🔴";
   };
 
   /** Collapse */
@@ -402,8 +374,6 @@ export async function main(ns) {
       switch (action.type) {
         case ("hacknet"): toggleSimple(ns, action, 10); break;
         case ("hacking"): tHacking(ns, action); break;
-        case ("toggle-private-server"): tPrivServ(ns, action); break;
-        case ("toggle-gain-access"): tGainAccess(ns, action); break;
         default: toggleSimple(ns, action); break;
       }
     }
