@@ -383,8 +383,8 @@ export async function main(ns) {
 }
 
 const SCRIPT_MAP = {
-  "contract": "contract.js",
-  "hacknet": "hacknet.js"
+  "contract": "functions/contract.js",
+  "hacknet": "functions/hacknet.js"
 }
 
 /**
@@ -409,16 +409,16 @@ function toggleSimple(ns, action, argument) {
  * Toggle the hacking manager
  */
 function tHacking(ns, action) {
-  if (action.enable) ns.exec("hacking-temp.js", "home", 1);
+  if (action.enable) ns.exec("functions/hacking-temp.js", "home", 1);
   else {
-    for (const p of ns.ps("home")) if (p.filename === "hacking-temp.js") ns.kill(p.pid);
+    for (const p of ns.ps("home")) if (p.filename === "functions/hacking-temp.js") ns.kill(p.pid);
     const visited = new Set();
     const stack = ["home"];
     while (stack.length > 0) {
       const server = stack.pop();
       visited.add(server);
       for (const n of ns.scan(server)) if (!visited.has(n)) stack.push(n);
-      for (const p of ns.ps(server)) if (p.filename === "worker.js") ns.kill(p.pid);
+      for (const p of ns.ps(server)) if (p.filename === "workers/worker.js") ns.kill(p.pid);
     }
   }
 }

@@ -12,7 +12,7 @@ export async function main(ns) {
 
   while (true) {
     privServManager(ns);
-    
+
     const servers = scanAll(ns);
     gainAccess(ns, servers);
 
@@ -26,7 +26,7 @@ export async function main(ns) {
       const worker = w[0];
       const target = assignments.find(a => a[0] === worker)?.[1];
       const processes = ns.ps(worker);
-      const running = processes.find(p => p.filename === "worker.js");
+      const running = processes.find(p => p.filename === "workers/worker.js");
       if (target) {
         if (running && running.args[0] === target) continue;
         deployWorkers(ns, worker, target);
@@ -43,7 +43,7 @@ export async function main(ns) {
  * Deploy Workers
  */
 function deployWorkers(ns, server, target) {
-  const script = "worker.js";
+  const script = "workers/worker.js";
   const ramPerThread = ns.getScriptRam(script);
 
   if (!ns.hasRootAccess(server)) return;
