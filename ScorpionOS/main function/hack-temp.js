@@ -21,88 +21,10 @@ export function scan(ns) {
 }
 
 /* --------------------------------------------------
-    GAIN ROOT ACCESS
--------------------------------------------------- */
-export function gainAccess(ns, servers) {
-  for (const server of servers) {
-    if (ns.fileExists("BruteSSH.exe", "home")) ns.brutessh(server);
-    if (ns.fileExists("FTPCrack.exe", "home")) ns.ftpcrack(server);
-    if (ns.fileExists("relaySMTP.exe", "home")) ns.relaysmtp(server);
-    if (ns.fileExists("HTTPWorm.exe", "home")) ns.httpworm(server);
-    if (ns.fileExists("SQLInject.exe", "home")) ns.sqlinject(server);
-
-    if (server === "home") continue;
-    if (ns.hasRootAccess(server)) continue;
-    if (ns.getServerNumPortsRequired(server) <= ns.getServer(server).openPortCount) ns.nuke(server);
-  }
-}
-
-/* --------------------------------------------------
-    CHECK BACKDOOR AVAILABLE
--------------------------------------------------- */
-export function checkBackdoors(ns, servers) {
-  const list = [];
-  const pservs = ns.getPurchasedServers();
-  const playerHackingLevel = ns.getHackingLevel();
-
-  for (const server of servers) {
-    if (server === "home") continue;
-    if (pservs.includes(server)) continue;
-    if (!ns.hasRootAccess(server)) continue;
-
-    const serverData = ns.getServer(server);
-
-    if (serverData.backdoorInstalled) continue;
-    if (playerHackingLevel >= serverData.requiredHackingSkill) list.push(server);
-  }
-
-  return list;
-}
-
-/* --------------------------------------------------
-    BUY / UPGRADE SERVERS
--------------------------------------------------- */
-export function manageServers(ns) {
-  const pservs = ns.getPurchasedServers();
-  const maxServers = ns.getPurchasedServerLimit();
-  const maxRam = ns.getPurchasedServerMaxRam();
-  const playerMoney = ns.getServerMoneyAvailable("home");
-  const prefix = "pserv-";
-
-  let ram = 1;
-  while (ram * 2 <= maxRam && ns.getPurchasedServerCost(ram * 2) < playerMoney) {
-    ram *= 2;
-  }
-
-  if (ram === 1) return;
-
-  let name = "";
-
-  if (pservs.length < maxServers) {
-    name = prefix + pservs.length;
-    ns.purchaseServer(name, ram);
-    return;
-  }
-
-  let weakest = pservs[0];
-  for (const s of pservs) {
-    if (ns.getServerMaxRam(s) < ns.getServerMaxRam(weakest)) weakest = s;
-  }
-
-  if (ns.getServerMaxRam(weakest) < ram) {
-    ns.killall(weakest);
-    if (ns.deleteServer(weakest)) {
-      name = weakest;
-      ns.purchaseServer(weakest, ram);
-    }
-  }
-}
-
-/* --------------------------------------------------
     DEPLOY WORKERS
 -------------------------------------------------- */
 export function deployWorkers(ns, server, target) {
-  const script = "script/worker.js";
+  const script = "worker.js";
   const ramPerThread = ns.getScriptRam(script);
 
   if (!ns.hasRootAccess(server)) return;
@@ -175,28 +97,20 @@ export async function main(ns) {
   let workers = [];
 
   while (true) {
-    manageServers(ns);
-
     const servers = scan(ns);
-
-    gainAccess(ns, servers);
-    const list = checkBackdoors(ns, servers);
-    for (const server of list) {
-      ns.toast("🔑 Backdoors possibles :" + server, "warning", 5000);
-    }
 
     [assignments, workers] = assignTarget(ns, servers);
     for (const w of workers) {
       const worker = w[0];
       const target = assignments.find(a => a[0] === worker)?.[1];
       const processes = ns.ps(worker);
-      const running = processes.find(p => p.filename === "script/worker.js");
+      const running = processes.find(p => p.filename === "worker.js");
       if (target) {
         if (running && running.args[0] === target) continue;
         deployWorkers(ns, worker, target);
       } else {
         if (running) ns.kill(running.pid);
-      }      
+      }
     }
 
     await ns.sleep(5000);
