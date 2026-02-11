@@ -3,7 +3,7 @@
  * This is temporary until I made a batch one
  * @param {NS} ns
  */
-import { scanAll, gainAccess, checkBackdoors } from "../tools/utils";
+import { scanAll, gainAccess, checkBackdoors } from "../tools/utils.js";
 
 export async function main(ns) {
   ns.disableLog("ALL");

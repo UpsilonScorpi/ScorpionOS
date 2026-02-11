@@ -2,7 +2,7 @@
  * Main script : Handle the UI and launching sub-script
  * @param {NS} ns
  */
-import { scanAll } from "./tools/utils";
+import { scanAll } from "./tools/utils.js";
 
 export async function main(ns) {
   ns.disableLog("ALL");
