@@ -3,7 +3,7 @@
  * This is temporary until I made a batch one
  * @param {NS} ns
  */
-import { scanAll, gainAccess, checkBackdoors } from "../tools/utils.js";
+import { scanAll, gainAccess, checkBackdoors } from "ScorpionOS/tools/utils.js";
 
 export async function main(ns) {
   ns.disableLog("ALL");
@@ -26,7 +26,7 @@ export async function main(ns) {
       const worker = w[0];
       const target = assignments.find(a => a[0] === worker)?.[1];
       const processes = ns.ps(worker);
-      const running = processes.find(p => p.filename === "../workers/worker.js");
+      const running = processes.find(p => p.filename === "ScorpionOS/workers/worker.js");
       if (target) {
         if (running && running.args[0] === target) continue;
         deployWorkers(ns, worker, target);
@@ -43,7 +43,7 @@ export async function main(ns) {
  * Deploy Workers
  */
 function deployWorkers(ns, server, target) {
-  const script = "../workers/worker.js";
+  const script = "ScorpionOS/workers/worker.js";
   const ramPerThread = ns.getScriptRam(script);
 
   if (!ns.hasRootAccess(server)) return;

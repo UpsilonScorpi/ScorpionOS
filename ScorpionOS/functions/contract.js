@@ -2,8 +2,8 @@
  * Script to auto solve contract (.cct)
  * @param {NS} ns
  */
-import { SOLVERS } from "../tools/solvers.js";
-import { scanAll } from "../tools/utils.js";
+import { SOLVERS } from "ScorpionOS/tools/solvers.js";
+import { scanAll } from "ScorpionOS/tools/utils.js";
 
 export async function main(ns) {
   ns.disableLog("ALL");
