@@ -404,41 +404,38 @@ export async function main(ns) {
         while (actionQueue.length > 0) {
             const action = actionQueue.shift();
 
-            if (action.type === "toggle-contract-solver") {
-                if (action.enable) {
-                    ns.exec("contract-solve.js", "home", 1);
-                } else {
-                    for (const p of ns.ps("home")) {
-                        if (p.filename === "contract-solve.js") ns.kill(p.pid);
-                    }
-                }
-            }
-            else if (action.type === "toggle-hacknet-opt") {
-                if (action.enable) {
-                    ns.exec("hacknet-opt.js", "home", 1);
-                } else {
-                    for (const p of ns.ps("home")) {
-                        if (p.filename === "hacknet-opt.js") ns.kill(p.pid);
-                    }
-                }
-            }
-            else if (action.type === "toggle-hacking") {
-                if (action.enable) {
-                    ns.exec("hack-temp.js", "home", 1);
-                } else {
-                    for (const p of ns.ps("home")) {
-                        if (p.filename === "hack-temp.js") ns.kill(p.pid);
-                    }
-                    while (stack.length > 0) {
-                        const server = stack.pop();
-                        visited.add(server);
-                        for (const n of ns.scan(server)) if (!visited.has(n)) stack.push(n);
-                        for (const p of ns.ps(server)) if (p.filename === "worker.js") ns.kill(p.pid);
-                    }
-                }
+            switch (action.type) {
+                case ("toggle-contract-solver") : tContractSolver(ns, action); break;
+                case ("toggle-hacknet-opt") : tHacknetOpt(ns, action); break;
+                case ("toggle-hacking") : tHacking(ns, action); break;
             }
         }
 
         await ns.sleep(1500);
+    }
+}
+
+function tContractSolver(ns, action) {
+    if (action.enable) ns.exec("contract-solve.js", "home", 1);
+    else for (const p of ns.ps("home")) if (p.filename === "contract-solve.js") ns.kill(p.pid);
+}
+
+function tHacknetOpt(ns, action) {
+    if (action.enable) ns.exec("hacknet-opt.js", "home", 1);
+    else for (const p of ns.ps("home")) if (p.filename === "hacknet-opt.js") ns.kill(p.pid);
+}
+
+function tHacking(ns, action) {
+    if (action.enable) ns.exec("hack-temp.js", "home", 1);
+    else {
+        for (const p of ns.ps("home")) if (p.filename === "hack-temp.js") ns.kill(p.pid);
+        const visited = new Set();
+        const stack = ["home"];
+        while (stack.length > 0) {
+            const server = stack.pop();
+            visited.add(server);
+            for (const n of ns.scan(server)) if (!visited.has(n)) stack.push(n);
+            for (const p of ns.ps(server)) if (p.filename === "worker.js") ns.kill(p.pid);
+        }
     }
 }
