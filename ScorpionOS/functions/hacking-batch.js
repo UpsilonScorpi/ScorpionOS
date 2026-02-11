@@ -22,7 +22,8 @@ export async function main(ns) {
  * Get best target
  */
 function bestTarget(ns, servers) {
-  let targetList = [];
+  let best = null;
+  let bestScore = 0;
   for (const s of servers) {
     if (s === "home") continue;
     if (ns.getPurchasedServers().includes(s)) continue;
@@ -34,10 +35,13 @@ function bestTarget(ns, servers) {
     const maxMoney = ns.getServerMaxMoney(s);
     if (maxMoney === 0) continue;
 
-    const minSec = ns.getServerMinSecurityLevel(s);
+    const score = getScore(ns, s, maxMoney);
+    if (score > bestScore) {
+      best = s;
+      bestScore = score;
+    }
   }
-  targetList.sort((a, b) => b[1] - a[1])
-  return targetList;
+  return best;
 }
 
 /**
@@ -97,5 +101,24 @@ function manageServer(ns) {
       name = weakest;
       ns.purchaseServer(weakest, ram);
     }
+  }
+}
+
+/**
+ * Calculate the score of a target
+ */
+function getScore(ns, s, maxMoney) {
+  const hasFormulas = ns.fileExists("Formulas.exe", "home");
+  if (!hasFormulas) {
+    const hackTime = ns.getHackTime(s);
+    const growTime = ns.getGrowTime(s);
+    const weakenTime = ns.getWeakenTime(s);
+    const hackPercent = ns.hackAnalyze(s);
+
+    return 0;
+  }
+  else {
+
+    return 0;
   }
 }
