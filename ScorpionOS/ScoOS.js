@@ -128,6 +128,13 @@ export async function main(ns) {
         ">
             <span id="icon-scr2">🔴</span> Hacknet
         </button>
+
+        <button id="btn-scr3" style="
+            background:#222; border:1px solid #555; color:#7fd1ff;
+            padding:4px 8px; margin:0; cursor:pointer; width:100%;
+        ">
+            <span id="icon-scr3">🔴</span> Hacking
+        </button>
     `;
 
     // === MODULE 2 : SERVERS LIST ===
@@ -176,6 +183,7 @@ export async function main(ns) {
 
     let runScript1 = false;
     let runScript2 = false;
+    let runScript3 = false;
 
     doc.getElementById("btn-mod2").onclick = () => {
         showModule2 = !showModule2;
@@ -215,6 +223,17 @@ export async function main(ns) {
         });
 
         doc.getElementById("icon-scr2").textContent = runScript2 ? "🟢" : "🔴";
+    };
+
+    doc.getElementById("btn-scr3").onclick = () => {
+        runScript3 = !runScript3;
+
+        actionQueue.push({
+            type: "toggle-hacking",
+            enable: runScript3
+        });
+
+        doc.getElementById("icon-scr3").textContent = runScript3 ? "🟢" : "🔴";
     };
 
     // === COLLAPSE ===
@@ -400,6 +419,21 @@ export async function main(ns) {
                 } else {
                     for (const p of ns.ps("home")) {
                         if (p.filename === "hacknet-opt.js") ns.kill(p.pid);
+                    }
+                }
+            }
+            else if (action.type === "toggle-hacking") {
+                if (action.enable) {
+                    ns.exec("hack-temp.js", "home", 1);
+                } else {
+                    for (const p of ns.ps("home")) {
+                        if (p.filename === "hack-temp.js") ns.kill(p.pid);
+                    }
+                    while (stack.length > 0) {
+                        const server = stack.pop();
+                        visited.add(server);
+                        for (const n of ns.scan(server)) if (!visited.has(n)) stack.push(n);
+                        for (const p of ns.ps(server)) if (p.filename === "worker.js") ns.kill(p.pid);
                     }
                 }
             }
