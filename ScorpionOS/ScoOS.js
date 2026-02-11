@@ -146,7 +146,8 @@ export async function main(ns) {
     border-left: 1px solid #333;
     padding-left: 10px;
   `;
-
+  col2.innerHTML = `<div id="server-table" style="font-size:11px; margin-top:4px;"></div>`;
+  
   /** Module 3 : Network Tree */
   const col3 = doc.createElement("div");
   col3.style = `
