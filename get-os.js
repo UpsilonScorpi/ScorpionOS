@@ -3,10 +3,8 @@ export async function main(ns) {
   const base = "https://raw.githubusercontent.com/UpsilonScorpi/ScorpionOS/main/ScorpionOS/";
 
   const files = [
-    // Racine
     "ScoOS.js",
 
-    // functions/
     "functions/contract.js",
     "functions/hacking-temp.js",
     "functions/hacknet.js",
@@ -15,15 +13,15 @@ export async function main(ns) {
     "tools/solvers.js",
     "tools/utils.js",
 
-    // worker/
     "workers/worker.js"
   ];
+
+  ns.tprint("🔄️ ScorpionOS downloading");
 
   for (const file of files) {
     const url = base + file;
     const local = "ScorpionOS/" + file;
 
-    // Crée les dossiers si besoin
     const parts = local.split("/");
     parts.pop();
     let path = "";
@@ -31,13 +29,9 @@ export async function main(ns) {
       path += p + "/";
       try { ns.mkdir(path); } catch { }
     }
-
-    ns.tprint(`⬇️ Downloading ${file}...`);
-    const ok = await ns.wget(url, local);
-
-    if (ok) ns.tprint(`✔️ Updated: ${local}`);
-    else ns.tprint(`❌ Failed: ${local}`);
+    await ns.wget(url, local);
   }
 
-  ns.tprint("🎉 ScorpionOS updated successfully!");
+  ns.tprint("✅ ScorpionOS downloaded");
+  ns.tprint("🌐 Launch ScorpionOS: run ScorpionOS/ScoOS.js");
 }

@@ -2,7 +2,8 @@
 OS for BitBurner
 
 ## How to install ?
-⚠️ Work in progress
+1. Copy the files [get-os.js]{https://raw.githubusercontent.com/UpsilonScorpi/ScorpionOS/main/get-os.js} in a script in your game
+2. Run this script
 
 ## Functionality :
 1. UI with :

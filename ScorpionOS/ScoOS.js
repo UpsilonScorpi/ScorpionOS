@@ -147,7 +147,7 @@ export async function main(ns) {
     padding-left: 10px;
   `;
   col2.innerHTML = `<div id="server-table" style="font-size:11px; margin-top:4px;"></div>`;
-  
+
   /** Module 3 : Network Tree */
   const col3 = doc.createElement("div");
   col3.style = `
@@ -205,19 +205,19 @@ export async function main(ns) {
 
   doc.getElementById("btn-scr1").onclick = () => {
     runScript1 = !runScript1;
-    actionQueue.push({type: "contract", enable: runScript1});
+    actionQueue.push({ type: "contract", enable: runScript1 });
     doc.getElementById("icon-scr1").textContent = runScript1 ? "🟢" : "🔴";
   };
 
   doc.getElementById("btn-scr2").onclick = () => {
     runScript2 = !runScript2;
-    actionQueue.push({type: "hacknet", enable: runScript2});
+    actionQueue.push({ type: "hacknet", enable: runScript2 });
     doc.getElementById("icon-scr2").textContent = runScript2 ? "🟢" : "🔴";
   };
 
   doc.getElementById("btn-scr3").onclick = () => {
     runScript3 = !runScript3;
-    actionQueue.push({type: "hacking", enable: runScript3});
+    actionQueue.push({ type: "hacking", enable: runScript3 });
     doc.getElementById("icon-scr3").textContent = runScript3 ? "🟢" : "🔴";
   };
 
@@ -343,7 +343,10 @@ export async function main(ns) {
         : "<i>none</i>";
 
       const scriptList = processes.length
-        ? processes.map(p => `${p.filename} [${p.args.join(", ")}]`).join("<br>")
+        ? processes.map(p => {
+          const name = p.filename.split("/").pop();
+          return `${name} [${p.args.join(", ")}]`;
+        }).join("<br>")
         : "<i>none</i>";
 
       html += `
@@ -395,7 +398,7 @@ function toggleSimple(ns, action, argument) {
   const script = SCRIPT_MAP[action.type];
 
   if (!script) {
-    ns.toast(`❗ Error : script ${action.type}`,"error",10000);
+    ns.toast(`❗ Error : script ${action.type}`, "error", 10000);
     return;
   }
 
