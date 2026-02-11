@@ -1,41 +1,7 @@
-/** @param {NS} ns **/
-export async function main(ns) {
-  ns.disableLog("ALL");
-  while (true) {
-    const servers = scanAll(ns);
-    for (const host of servers) {
-      const files = ns.ls(host, ".cct");
-      for (const file of files) {
-        const type = ns.codingcontract.getContractType(file, host);
-        const solver = SOLVERS[type];
-        if (!solver) {
-          ns.tprint(`❌ Pas de solveur pour : ${type} (${file} sur ${host})`);
-          continue;
-        }
-        const data = ns.codingcontract.getData(file, host);
-        try {
-          const answer = solver(data);
-          ns.codingcontract.attempt(answer, file, host);
-        } catch (e) {
-          ns.tprint(`❌ Erreur solveur ${type} : ${e}`);
-        }
-      }
-    }
-    await ns.sleep(5000);
-  }
-}
-
-function scanAll(ns) {
-  const seen = new Set(["home"]);
-  const stack = ["home"];
-  while (stack.length) {
-    const h = stack.pop();
-    for (const n of ns.scan(h)) if (!seen.has(n)) { seen.add(n); stack.push(n); }
-  }
-  return [...seen];
-}
-
-const SOLVERS = {
+/**
+ * All solvers for the contract (.cct)
+ */
+export const SOLVERS = {
   "Find Largest Prime Factor": (data) => {
     let fac = 2n;
     let n = BigInt(data);
@@ -439,4 +405,4 @@ const SOLVERS = {
     if (data >= t) x++;
     return x;
   }
-};
+}

@@ -39,6 +39,6 @@ export async function main(ns, pct = ns.args[0]) {
       else if (topRoI == RoI[2] && ns.hacknet.getCoreUpgradeCost(i, 1) < allowance) ns.hacknet.upgradeCore(i, 1);
     }
 
-    await ns.sleep(1500);
+    await ns.sleep(5000);
   }
 }

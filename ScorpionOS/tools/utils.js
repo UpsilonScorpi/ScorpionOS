@@ -1,37 +1,33 @@
-/** @param {NS} ns */
-export async function main(ns) {
-  ns.disableLog("ALL");
+/**
+ * Toolbox for all usefull function
+ * @param {NS} ns
+ */
 
-  while (true) {
-    const servers = scan(ns);
-
-    gainAccess(ns, servers);
-    const list = checkBackdoors(ns, servers);
-    for (const server of list) {
-      ns.toast("🔑 Backdoors possibles :" + server, "warning", 5000);
-    }
-    
-    await ns.sleep(1500);
-  }
-}
-
-/* --------------------------------------------------
-    SCAN ALL NETWORK
--------------------------------------------------- */
-function scan(ns) {
+/**
+ * Function to scan the entire network
+ */
+export function scanAll(ns) {
   const servers = [];
+
   function explore(server) {
     servers.push(server);
-    for (const neighbor of ns.scan(server)) if (!servers.includes(neighbor)) explore(neighbor);
+
+    for (const neighbor of ns.scan(server)) {
+      if (!servers.includes(neighbor)) {
+        explore(neighbor);
+      }
+    }
   }
+
   explore("home");
+
   return servers;
 }
 
-/* --------------------------------------------------
-    GAIN ROOT ACCESS
--------------------------------------------------- */
-function gainAccess(ns, servers) {
+/**
+ * Function to open port and gain root access
+ */
+export function gainAccess(ns, servers) {
   for (const server of servers) {
     if (ns.fileExists("BruteSSH.exe", "home")) ns.brutessh(server);
     if (ns.fileExists("FTPCrack.exe", "home")) ns.ftpcrack(server);
@@ -43,10 +39,10 @@ function gainAccess(ns, servers) {
   }
 }
 
-/* --------------------------------------------------
-    CHECK BACKDOOR AVAILABLE
--------------------------------------------------- */
-function checkBackdoors(ns, servers) {
+/**
+ * Function to get all available backdoor
+ */
+export function checkBackdoors(ns, servers) {
   const list = [];
   const pservs = ns.getPurchasedServers();
   const playerHackingLevel = ns.getHackingLevel();
