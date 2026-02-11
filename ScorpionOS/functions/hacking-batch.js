@@ -12,7 +12,7 @@ export async function main(ns) {
     gainAccess(ns, servers);
     const list = checkBackdoors(ns, servers);
     for (const server of list) {
-      ns.toast("🔑 Backdoors possibles :" + server, "warning", 1500);
+      ns.toast("🔑 Backdoors possibles :" + server, "warning", 5000);
     }
     const target = bestTarget(ns, servers);
   }

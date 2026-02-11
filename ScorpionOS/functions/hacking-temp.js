@@ -18,7 +18,7 @@ export async function main(ns) {
 
     const list = checkBackdoors(ns, servers);
     for (const server of list) {
-      ns.toast("🔑 Backdoors possibles :" + server, "warning", 1500);
+      ns.toast("🔑 Backdoors possibles :" + server, "warning", 5000);
     }
 
     [assignments, workers] = assignTarget(ns, servers);
