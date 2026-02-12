@@ -24,18 +24,29 @@ export async function main(ns) {
 function bestTarget(ns, servers) {
   let best = null;
   let bestScore = 0;
+  const pserv = ns.getPurchasedServers();
+  const playerHackLevel = ns.getHackingLevel();
+  const hackMult = ns.getHackingMultipliers();
+  const player = ns.getPlayer();
   for (const s of servers) {
     if (s === "home") continue;
-    if (ns.getPurchasedServers().includes(s)) continue;
+    if (pserv.includes(s)) continue;
     if (!ns.hasRootAccess(s)) continue;
 
     const reqHackLevel = ns.getServerRequiredHackingLevel(s);
-    if (reqHackLevel > ns.getHackingLevel()) continue;
+    if (reqHackLevel > playerHackLevel) continue;
 
     const maxMoney = ns.getServerMaxMoney(s);
-    if (maxMoney === 0) continue;
+    if (maxMoney <= 0) continue;
 
-    const score = getScore(ns, s, maxMoney);
+    const score = getScore(ns, s, {
+      maxMoney,
+      playerHackLevel,
+      hackMult,
+      reqHackLevel,
+      player
+    });
+
     if (score > bestScore) {
       best = s;
       bestScore = score;
@@ -107,18 +118,36 @@ function manageServer(ns) {
 /**
  * Calculate the score of a target
  */
-function getScore(ns, s, maxMoney) {
+function getScore(ns, s, data) {
+  const { maxMoney, playerHackLevel, hackMult, reqHackLevel, player } = data;
+
   const hasFormulas = ns.fileExists("Formulas.exe", "home");
   if (!hasFormulas) {
-    const hackTime = ns.getHackTime(s);
-    const growTime = ns.getGrowTime(s);
     const weakenTime = ns.getWeakenTime(s);
-    const hackPercent = ns.hackAnalyze(s);
 
-    return 0;
+    const minSec = ns.getServerMinSecurityLevel(s);
+
+    const hackChance = Math.min(1,Math.max(0,(playerHackLevel / (playerHackLevel + reqHackLevel * minSec)) * hackMult.chance));
+    const hackPercent = Math.min(1,Math.max(0,(0.002 * (playerHackLevel/reqHackLevel)) / minSec));
+
+    if (hackChance <= 0 || hackPercent <= 0) return 0;
+
+    const score = (maxMoney * hackPercent * hackMult.money * hackChance) / weakenTime;
+
+    return score;
   }
   else {
+    const sim = ns.getServer(s);
+    sim.hackDifficulty = sim.minDifficulty;
+    sim.moneyAvailable = sim.moneyMax;
+    const hackChance = ns.formulas.hacking.hackChance(sim, player);
+    const hackPercent = ns.formulas.hacking.hackPercent(sim, player);
+    const weakenTime = ns.formulas.hacking.weakenTime(setTimeout,player);
 
-    return 0;
+    if (hackChance <= 0 || hackPercent <= 0) return 0;
+
+    const score = (maxMoney * hackPercent * hackChance) / weakenTime;
+
+    return score;
   }
 }
