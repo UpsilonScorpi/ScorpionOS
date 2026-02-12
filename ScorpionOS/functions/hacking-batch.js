@@ -99,6 +99,7 @@ export async function main(ns) {
       workers,
       delay: weakenGrowWait
     });
+    await ns.sleep(sleepTime);
   }
 }
 
