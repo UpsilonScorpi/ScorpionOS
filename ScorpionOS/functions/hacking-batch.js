@@ -9,14 +9,21 @@ export async function main(ns) {
   let target = null;
   let hackWait = 0;
   let growWait = 0;
-  let weakenWait = 0;
+  let weakenHackWait = 0;
+  let weakenGrowWait = 0;
 
   let hackThread = 0;
   let growThread = 0;
-  let weakenThread = 0;
+  let weakenHackThread = 0;
+  let weakenGrowThread = 0;
 
   const cooldown = 200;
   const sleepTime = 500;
+  const hackAmount = 0.1;
+
+  const weakenScript = "ScorpionOS/workers/weaken.js";
+  const growScript = "ScorpionOS/workers/grow.js";
+  const hackScript = "ScorpionOS/workers/hack.js";
 
   while (true) {
     manageServer(ns);
@@ -26,29 +33,72 @@ export async function main(ns) {
     for (const server of list) {
       ns.toast("🔑 Backdoors possibles :" + server, "warning", 5000);
     }
-    const workers = listWorker(ns,servers);
+    const workers = listWorker(ns, servers);
     const targetNew = bestTarget(ns, servers);
     if (targetNew !== target) {
-      const minSec = ns.getServerMinSecurityLevel(s);
-      const maxMoney = ns.getServerMaxMoney(s);
-      await prep(ns,{
-        target,
-        workers,
-        minSec,
-        maxMoney,
-        cooldown
-      });
-      /**
-       * Calculate time to wait for launching each action + Thread factor (ex: h:1 - w:3 - g:2 => weaken = 3 time number thread of hack and 3/2 time number thread grow)
-       */
+      const minSec = ns.getServerMinSecurityLevel(targetNew);
+      const maxMoney = ns.getServerMaxMoney(targetNew);
+      while (ns.getServerMoneyAvailable(targetNew) < maxMoney * 0.99 || ns.getServerSecurityLevel(targetNew) > minSec + 0.1) {
+        await prep(ns, {
+          target: targetNew,
+          workers,
+          minSec,
+          maxMoney,
+          cooldown
+        });
+      }
+      const hackPercent = ns.hackAnalyze(targetNew);
+      hackThread = Math.ceil(hackAmount / hackPercent);
+
+      const secHack = ns.hackAnalyzeSecurity(hackThread);
+      weakenHackThread = Math.ceil(secHack / ns.weakenAnalyze(1));
+
+      const growRatio = 1 / (1 - hackAmount);
+      growThread = Math.ceil(ns.growthAnalyze(targetNew, growRatio));
+
+      const secGrow = ns.growthAnalyzeSecurity(growThread);
+      weakenGrowThread = Math.ceil(secGrow / ns.weakenAnalyze(1));
+
+      const tH = ns.getHackTime(targetNew);
+      const tG = ns.getGrowTime(targetNew);
+      const tW = ns.getWeakenTime(targetNew);
+
+      hackWait = tW - cooldown - tH;
+      weakenHackWait = 0;
+      growWait = tW - tG + cooldown;
+      weakenGrowWait = 2 * cooldown;
+
+      target = targetNew;
     }
-    /**
-     * Attribute server for 1 of 4 action H - W - G - W
-     */
     await ns.sleep(cooldown);
-    /**
-     * Launch each action in order H - W - G - W for a batch
-     */
+    deployWorkers(ns, {
+      target,
+      script: hackScript,
+      thread: hackThread,
+      workers,
+      delay: hackWait
+    });
+    deployWorkers(ns, {
+      target,
+      script: weakenScript,
+      thread: weakenHackThread,
+      workers,
+      delay: weakenHackWait
+    });
+    deployWorkers(ns, {
+      target,
+      script: growScript,
+      thread: growThread,
+      workers,
+      delay: growWait
+    });
+    deployWorkers(ns, {
+      target,
+      script: weakenScript,
+      thread: weakenGrowThread,
+      workers,
+      delay: weakenGrowWait
+    });
   }
 }
 
@@ -101,8 +151,8 @@ function getScore(ns, s, data) {
 
     const minSec = ns.getServerMinSecurityLevel(s);
 
-    const hackChance = Math.min(1,Math.max(0,(playerHackLevel / (playerHackLevel + reqHackLevel * minSec)) * hackMult.chance));
-    const hackPercent = Math.min(1,Math.max(0,(0.002 * (playerHackLevel/reqHackLevel)) / minSec));
+    const hackChance = Math.min(1, Math.max(0, (playerHackLevel / (playerHackLevel + reqHackLevel * minSec)) * hackMult.chance));
+    const hackPercent = Math.min(1, Math.max(0, (0.002 * (playerHackLevel / reqHackLevel)) / minSec));
 
     if (hackChance <= 0 || hackPercent <= 0) return 0;
 
@@ -116,7 +166,7 @@ function getScore(ns, s, data) {
     sim.moneyAvailable = sim.moneyMax;
     const hackChance = ns.formulas.hacking.hackChance(sim, player);
     const hackPercent = ns.formulas.hacking.hackPercent(sim, player);
-    const weakenTime = ns.formulas.hacking.weakenTime(setTimeout,player);
+    const weakenTime = ns.formulas.hacking.weakenTime(setTimeout, player);
 
     if (hackChance <= 0 || hackPercent <= 0) return 0;
 
@@ -135,7 +185,7 @@ function listWorker(ns, servers) {
     if (s === "home") continue;
     if (!ns.hasRootAccess(s)) continue;
 
-    const ram = ns.getServerMaxRam(s) - ns.getServerUsedRam(s);
+    const ram = ns.getServerMaxRam(s);
 
     if (ram < 2) continue;
 
@@ -191,19 +241,19 @@ function manageServer(ns) {
 /**
  * Function to prepare targeted server
  */
-async function prep(ns,data) {
+async function prep(ns, data) {
   const { target, workers, minSec, maxMoney, cooldown } = data;
 
   const currentSec = ns.getServerSecurityLevel(target);
   const secToRemove = currentSec - minSec;
-  const weakenThread1 = Math.ceil(secToRemove/ns.weakenAnalyze(1));
+  const weakenThread1 = Math.ceil(secToRemove / ns.weakenAnalyze(1));
 
   const currentMoney = ns.getServerMoneyAvailable(target);
-  const growRatio = maxMoney / Math.max(currentMoney,1);
+  const growRatio = maxMoney / Math.max(currentMoney, 1);
   const growThread = Math.ceil(ns.growthAnalyze(target, growRatio));
 
   const secGrow = ns.growthAnalyzeSecurity(growThread);
-  const weakenThread2 = Math.ceil(secGrow/ns.weakenAnalyze(1));
+  const weakenThread2 = Math.ceil(secGrow / ns.weakenAnalyze(1));
 
   const tW = ns.getWeakenTime(target);
   const tG = ns.getGrowTime(target);
@@ -215,23 +265,26 @@ async function prep(ns,data) {
   const weakenScript = "ScorpionOS/workers/weaken.js";
   const growScript = "ScorpionOS/workers/grow.js";
 
-  deployWorkers(ns,{
+  deployWorkers(ns, {
     target,
-    weakenScript,
-    weakenThread1,
-    launchW1
+    script: weakenScript,
+    thread: weakenThread1,
+    workers,
+    delay: launchW1
   });
-  deployWorkers(ns,{
+  deployWorkers(ns, {
     target,
-    growScript,
-    growThread,
-    launchG
+    script: growScript,
+    thread: growThread,
+    workers,
+    delay: launchG
   });
-  deployWorkers(ns,{
+  deployWorkers(ns, {
     target,
-    weakenScript,
-    weakenThread2,
-    launchW2
+    script: weakenScript,
+    thread: weakenThread2,
+    workers,
+    delay: launchW2
   });
 
   await ns.sleep(tW + 2.5 * cooldown);
@@ -241,11 +294,11 @@ async function prep(ns,data) {
  * Function to deploy worker
  */
 function deployWorkers(ns, data) {
-  const {target, script, thread, workers, delay} = data;
+  const { target, script, thread, workers, delay } = data;
   let remaining = thread;
 
   for (const [server, ram] of workers) {
-    const free = Math.floor(ram / ns.getScriptRam(script));
+    const free = Math.floor((ram - ns.getServerUsedRam(server)) / ns.getScriptRam(script));
     if (free <= 0) continue;
     const use = Math.min(free, remaining);
     ns.scp(script, server);
