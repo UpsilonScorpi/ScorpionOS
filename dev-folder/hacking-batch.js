@@ -2,7 +2,7 @@
  * Hack manager
  * @param {NS} ns
  */
-import { scanAll, gainAccess, checkBackdoors } from "../tools/utils.js";
+import { scanAll, gainAccess, checkBackdoors } from "utils.js";
 
 export async function main(ns) {
   ns.disableLog("ALL");
@@ -21,9 +21,11 @@ export async function main(ns) {
   const sleepTime = 500;
   const hackAmount = 0.1;
 
-  const weakenScript = "ScorpionOS/workers/weaken.js";
-  const growScript = "ScorpionOS/workers/grow.js";
-  const hackScript = "ScorpionOS/workers/hack.js";
+  const weakenScript = "weaken.js";
+  const growScript = "grow.js";
+  const hackScript = "hack.js";
+
+  let id = 0;
 
   while (true) {
     manageServer(ns);
@@ -35,10 +37,14 @@ export async function main(ns) {
     }
     const workers = listWorker(ns, servers);
     const targetNew = bestTarget(ns, servers);
+    ns.tprint(`T : ${target} ; NT : ${targetNew}`);
     if (targetNew !== target) {
       const minSec = ns.getServerMinSecurityLevel(targetNew);
       const maxMoney = ns.getServerMaxMoney(targetNew);
+      ns.tprint(`Start prep`);
+      let roundprep = 0;
       while (ns.getServerMoneyAvailable(targetNew) < maxMoney * 0.99 || ns.getServerSecurityLevel(targetNew) > minSec + 0.1) {
+        ns.tprint(`Prep round ${roundprep}`);
         await prep(ns, {
           target: targetNew,
           workers,
@@ -46,6 +52,7 @@ export async function main(ns) {
           maxMoney,
           cooldown
         });
+        roundprep+=1
       }
       const hackPercent = ns.hackAnalyze(targetNew);
       hackThread = Math.ceil(hackAmount / hackPercent);
@@ -71,34 +78,40 @@ export async function main(ns) {
       target = targetNew;
     }
     await ns.sleep(cooldown);
+    ns.tprint(`Start batch`);
     deployWorkers(ns, {
       target,
       script: hackScript,
       thread: hackThread,
       workers,
-      delay: hackWait
+      delay: hackWait,
+      id: `bH-${id}`
     });
     deployWorkers(ns, {
       target,
       script: weakenScript,
       thread: weakenHackThread,
       workers,
-      delay: weakenHackWait
+      delay: weakenHackWait,
+      id: `bWH-${id}`
     });
     deployWorkers(ns, {
       target,
       script: growScript,
       thread: growThread,
       workers,
-      delay: growWait
+      delay: growWait,
+      id: `bG-${id}`
     });
     deployWorkers(ns, {
       target,
       script: weakenScript,
       thread: weakenGrowThread,
       workers,
-      delay: weakenGrowWait
+      delay: weakenGrowWait,
+      id: `bWG-${id}`
     });
+    id += 1;
     await ns.sleep(sleepTime);
   }
 }
@@ -263,29 +276,32 @@ async function prep(ns, data) {
   const launchG = tW - tG + cooldown;
   const launchW2 = 2 * cooldown;
 
-  const weakenScript = "ScorpionOS/workers/weaken.js";
-  const growScript = "ScorpionOS/workers/grow.js";
+  const weakenScript = "weaken.js";
+  const growScript = "grow.js";
 
   if (weakenThread1 > 0) deployWorkers(ns, {
     target,
     script: weakenScript,
     thread: weakenThread1,
     workers,
-    delay: launchW1
+    delay: launchW1,
+    id: "prep-w1"
   });
   if (growThread > 0) deployWorkers(ns, {
     target,
     script: growScript,
     thread: growThread,
     workers,
-    delay: launchG
+    delay: launchG,
+    id: "prep-g"
   });
   if (weakenThread2 > 0) deployWorkers(ns, {
     target,
     script: weakenScript,
     thread: weakenThread2,
     workers,
-    delay: launchW2
+    delay: launchW2,
+    id: "prep-w2"
   });
 
   await ns.sleep(tW + 2.5 * cooldown);
@@ -295,7 +311,7 @@ async function prep(ns, data) {
  * Function to deploy worker
  */
 function deployWorkers(ns, data) {
-  const { target, script, thread, workers, delay } = data;
+  const { target, script, thread, workers, delay, id } = data;
   let remaining = thread;
 
   for (const [server, ram] of workers) {
@@ -303,7 +319,7 @@ function deployWorkers(ns, data) {
     if (free <= 0) continue;
     const use = Math.min(free, remaining);
     ns.scp(script, server);
-    ns.exec(script, server, use, target, delay);
+    ns.exec(script, server, use, target, delay, id);
     remaining -= use;
     if (remaining <= 0) break;
   }
