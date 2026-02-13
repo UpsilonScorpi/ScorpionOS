@@ -127,16 +127,12 @@ function manageServer(ns) {
     return;
   }
 
-  let weakest = null;
-  let weakestRam = 0;
+  let weakest = pservs[0];
   for (const s of pservs) {
-    if (ns.getServerMaxRam(s) < weakestRam) {
-      weakest = s;
-      weakestRam = ns.getServerMaxRam(s);
-    }
+    if (ns.getServerMaxRam(s) < ns.getServerMaxRam(weakest)) weakest = s;
   }
 
-  if (weakestRam < ram && weakest !== null) {
+  if (ns.getServerMaxRam(weakest) < ram) {
     ns.killall(weakest);
     if (ns.deleteServer(weakest)) {
       name = weakest;

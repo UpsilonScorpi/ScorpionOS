@@ -110,8 +110,6 @@ function assignTarget(ns, servers) {
  * Buy / Upgrade private server
  */
 function privServManager(ns) {
-  ns.disableLog("ALL");
-
   const pservs = ns.getPurchasedServers();
   const maxServers = ns.getPurchasedServerLimit();
   const maxRam = ns.getPurchasedServerMaxRam();
