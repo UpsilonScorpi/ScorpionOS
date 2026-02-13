@@ -92,10 +92,10 @@ export async function main(ns) {
 function listWorker(ns, servers) {
   let workerList = [];
   for (const s of servers) {
-    if (s === "home") continue;
     if (!ns.hasRootAccess(s)) continue;
 
-    const ram = ns.getServerMaxRam(s);
+    let ram = ns.getServerMaxRam(s);
+    if (s === "home") ram *= 0.75;
 
     if (ram < 2) continue;
 
