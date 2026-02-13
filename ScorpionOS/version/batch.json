@@ -1,0 +1,11 @@
+{
+  "ScoOS.js": "ScoOS.js",
+  "contract": "functions/contract.js",
+  "hacking": "functions/hacking-batch.js",
+  "hacknet": "functions/hacknet.js",
+  "solvers": "tools/solvers.js",
+  "utils": "tools/utils.js",
+  "grow": "workers/grow.js",
+  "hack": "workers/hack.js",
+  "weaken": "workers/weaken.js"
+}
