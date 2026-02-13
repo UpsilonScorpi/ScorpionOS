@@ -413,9 +413,9 @@ function toggleSimple(ns, action, argument) {
  * Toggle the hacking manager
  */
 function tHacking(ns, action) {
-  if (action.enable) ns.exec("ScorpionOS/functions/hacking-temp.js", "home", 1);
+  if (action.enable) ns.exec("ScorpionOS/functions/hacking.js", "home", 1);
   else {
-    for (const p of ns.ps("home")) if (p.filename === "ScorpionOS/functions/hacking-temp.js") ns.kill(p.pid);
+    for (const p of ns.ps("home")) if (p.filename === "ScorpionOS/functions/hacking.js") ns.kill(p.pid);
     const visited = new Set();
     const stack = ["home"];
     while (stack.length > 0) {
