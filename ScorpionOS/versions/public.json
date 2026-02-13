@@ -1,5 +1,5 @@
 {
-  "ScoOS.js": "ScoOS.js",
+  "ScoOS": "ScoOS.js",
   "contract": "functions/contract.js",
   "hacking": "functions/hacking-temp.js",
   "hacknet": "functions/hacknet.js",
