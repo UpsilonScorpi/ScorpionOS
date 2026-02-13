@@ -11,6 +11,7 @@ export async function main(ns) {
   const cooldown = 200;
   const sleepTime = 500;
   const hackAmount = 0.9;
+  const targetAmount = 10;
 
   while (true) {
     manageServer(ns);
@@ -20,7 +21,7 @@ export async function main(ns) {
     for (const server of list) {
       ns.toast("🔑 Backdoors possibles :" + server, "warning", 5000);
     }
-    const targetsNew = bestTarget(ns, servers);
+    const targetsNew = bestTarget(ns, servers, targetAmount);
     if (!sameTargets(targetsNew, targets)) {
       targets = targetsNew;
       for (const p of ns.ps()) if (p.filename === "ScorpionOS/workers/batch.js") ns.kill(p.pid);
@@ -33,7 +34,7 @@ export async function main(ns) {
 /**
  * Get best target
  */
-function bestTarget(ns, servers) {
+function bestTarget(ns, servers, targetAmount) {
   let targets = [];
   const pserv = ns.getPurchasedServers();
   const playerHackLevel = ns.getHackingLevel();
@@ -61,7 +62,7 @@ function bestTarget(ns, servers) {
     targets.push([s, score]);
   }
   targets.sort((a, b) => b[1] - a[1]);
-  return targets.slice(0, 25);
+  return targets.slice(0, targetAmount);
 }
 
 /**
