@@ -17,7 +17,7 @@ export async function main(ns) {
   let weakenHackThread = 0;
   let weakenGrowThread = 0;
 
-  const cooldown = 100;
+  const cooldown = 200;
   const sleepTime = 500;
   const hackAmount = 0.1;
 
@@ -60,7 +60,7 @@ export async function main(ns) {
       const secHack = ns.hackAnalyzeSecurity(hackThread);
       weakenHackThread = Math.ceil(secHack / ns.weakenAnalyze(1));
 
-      const growRatio = 1 / (1 - hackAmount * 1.01);
+      const growRatio = 1 / (1 - hackAmount * 1.1);
       growThread = Math.ceil(ns.growthAnalyze(targetNew, growRatio));
 
       const secGrow = ns.growthAnalyzeSecurity(growThread);
