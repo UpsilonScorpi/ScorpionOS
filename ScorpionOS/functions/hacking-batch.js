@@ -53,7 +53,7 @@ export async function main(ns) {
       const secHack = ns.hackAnalyzeSecurity(hackThread);
       weakenHackThread = Math.ceil(secHack / ns.weakenAnalyze(1)*1.1);
 
-      const growRatio = 1 + (hackAmount / (1 - hackAmount));
+      const growRatio = (1 + (hackAmount / (1 - hackAmount)))*1.1;
       growThread = Math.ceil(ns.growthAnalyze(targetNew, growRatio)*1.1);
 
       const secGrow = ns.growthAnalyzeSecurity(growThread);
