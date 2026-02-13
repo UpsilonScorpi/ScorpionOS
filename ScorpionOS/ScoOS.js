@@ -421,7 +421,7 @@ export async function main(ns) {
   /** Main loop */
   while (true) {
     if (!collapsed) {
-      if (showModule4) col3.innerHTML = `${buildTree()}`;
+      if (showModule4) col4.innerHTML = `${buildTree()}`;
       if (showModule2) renderServerTable();
       if (showModule3) renderPrivServerTable();
     }
