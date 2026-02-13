@@ -58,13 +58,13 @@ export async function main(ns) {
       hackThread = Math.ceil(hackAmount / hackPercent);
 
       const secHack = ns.hackAnalyzeSecurity(hackThread);
-      weakenHackThread = Math.ceil(secHack / ns.weakenAnalyze(1));
+      weakenHackThread = Math.ceil(secHack / ns.weakenAnalyze(1)*1.1);
 
-      const growRatio = 1 / (1 - hackAmount * 1.1);
-      growThread = Math.ceil(ns.growthAnalyze(targetNew, growRatio));
+      const growRatio = 1 + (hackAmount / (1 - hackAmount));
+      growThread = Math.ceil(ns.growthAnalyze(targetNew, growRatio)*1.1);
 
       const secGrow = ns.growthAnalyzeSecurity(growThread);
-      weakenGrowThread = Math.ceil(secGrow / ns.weakenAnalyze(1));
+      weakenGrowThread = Math.ceil(secGrow / ns.weakenAnalyze(1)*1.1);
 
       const tH = ns.getHackTime(targetNew);
       const tG = ns.getGrowTime(targetNew);
@@ -260,14 +260,14 @@ async function prep(ns, data) {
 
   const currentSec = ns.getServerSecurityLevel(target);
   const secToRemove = currentSec - minSec;
-  const weakenThread1 = Math.ceil(secToRemove / ns.weakenAnalyze(1));
+  const weakenThread1 = Math.ceil(secToRemove / ns.weakenAnalyze(1)*1.1);
 
   const currentMoney = ns.getServerMoneyAvailable(target);
   const growRatio = maxMoney / Math.max(currentMoney, 1);
-  const growThread = Math.ceil(ns.growthAnalyze(target, growRatio));
+  const growThread = Math.ceil(ns.growthAnalyze(target, growRatio)*1.1);
 
   const secGrow = ns.growthAnalyzeSecurity(growThread);
-  const weakenThread2 = Math.ceil(secGrow / ns.weakenAnalyze(1));
+  const weakenThread2 = Math.ceil(secGrow / ns.weakenAnalyze(1)*1.1);
 
   const tW = ns.getWeakenTime(target);
   const tG = ns.getGrowTime(target);
