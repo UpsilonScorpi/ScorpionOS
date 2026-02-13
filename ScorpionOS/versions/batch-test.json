@@ -8,5 +8,5 @@
   "grow": "workers/grow.js",
   "hack": "workers/hack.js",
   "weaken": "workers/weaken.js",
-  "batch": "workers/batch/js"
+  "batch": "workers/batch.js"
 }
