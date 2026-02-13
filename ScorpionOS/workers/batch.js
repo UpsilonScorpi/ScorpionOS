@@ -50,6 +50,14 @@ export async function main(ns) {
   const weakenGrowWait = 2 * cooldown;
 
   while (true) {
+    while (ns.getServerMoneyAvailable(target) < maxMoney * 0.99 || ns.getServerSecurityLevel(target) > minSec + 0.1) {
+      await prep(ns, {
+        target: target,
+        minSec,
+        maxMoney,
+        cooldown
+      });
+    }
     deployWorkers(ns, {
       target,
       script: hackScript,

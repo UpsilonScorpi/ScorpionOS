@@ -129,7 +129,7 @@ function manageServer(ns) {
   let weakest = null;
   let weakestRam = 0;
   for (const s of pservs) {
-    if (ns.getServerMaxRam(s) < weakestRam && ns.ps(s).length === 0) {
+    if (ns.getServerMaxRam(s) < weakestRam) {
       weakest = s;
       weakestRam = ns.getServerMaxRam(s);
     }
