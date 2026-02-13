@@ -9,6 +9,6 @@
   "hack": "workers/hack.js",
   "weaken": "workers/weaken.js",
   "batch": "workers/batch.js",
-  "hacking-simple": "functions/hacking-simple",
+  "hacking-simple": "functions/hacking-simple.js",
   "worker": "workers/worker.js"
 }
