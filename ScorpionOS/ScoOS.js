@@ -141,14 +141,21 @@ export async function main(ns) {
       background:#222; border:1px solid #555; color:#7fd1ff;
       padding:4px 8px; margin:0; cursor:pointer; width:100%;
     ">
-      <span id="icon-scr3">🔴</span> Hacking
+      <span id="icon-scr3">🔴</span> Hacking Simple
     </button>
 
     <button id="btn-scr4" style="
       background:#222; border:1px solid #555; color:#7fd1ff;
       padding:4px 8px; margin:0; cursor:pointer; width:100%;
     ">
-      <span id="icon-scr4">🟡</span> Stocks
+      <span id="icon-scr4">🔴</span> Hacking Batch
+    </button>
+
+    <button id="btn-scr5" style="
+      background:#222; border:1px solid #555; color:#7fd1ff;
+      padding:4px 8px; margin:0; cursor:pointer; width:100%;
+    ">
+      <span id="icon-scr5">🟡</span> Stocks
     </button>
   `;
 
@@ -210,6 +217,8 @@ export async function main(ns) {
   let runScript1 = false;
   let runScript2 = false;
   let runScript3 = false;
+  let runScript4 = false;
+  let runScript5 = false;
 
   doc.getElementById("btn-mod2").onclick = () => {
     showModule2 = !showModule2;
@@ -249,8 +258,14 @@ export async function main(ns) {
 
   doc.getElementById("btn-scr3").onclick = () => {
     runScript3 = !runScript3;
-    actionQueue.push({ type: "hacking", enable: runScript3 });
+    actionQueue.push({ type: "hacking-simple", enable: runScript3 });
     doc.getElementById("icon-scr3").textContent = runScript3 ? "🟢" : "🔴";
+  };
+
+  doc.getElementById("btn-scr4").onclick = () => {
+    runScript4 = !runScript4;
+    actionQueue.push({ type: "hacking-batch", enable: runScript4 });
+    doc.getElementById("icon-scr4").textContent = runScript4 ? "🟢" : "🔴";
   };
 
   /** Collapse */
@@ -439,7 +454,8 @@ export async function main(ns) {
 
       switch (action.type) {
         case ("hacknet"): toggleSimple(ns, action, 10); break;
-        case ("hacking"): tHacking(ns, action); break;
+        case ("hacking-simple"): tHackingSimple(ns, action); break;
+        case ("hacking-batch"): tHackingBatch(ns, action); break;
         default: toggleSimple(ns, action); break;
       }
     }
@@ -472,19 +488,37 @@ function toggleSimple(ns, action, argument) {
 }
 
 /**
- * Toggle the hacking manager
+ * Toggle the hacking manager simple
  */
-function tHacking(ns, action) {
-  if (action.enable) ns.exec("ScorpionOS/functions/hacking.js", "home", 1);
+function tHackingSimple(ns, action) {
+  if (action.enable) ns.exec("ScorpionOS/functions/hacking-simple.js", "home", 1);
   else {
-    for (const p of ns.ps("home")) if (p.filename === "ScorpionOS/functions/hacking.js") ns.kill(p.pid);
+    for (const p of ns.ps("home")) if (p.filename === "ScorpionOS/functions/hacking-simple.js") ns.kill(p.pid);
     const visited = new Set();
     const stack = ["home"];
     while (stack.length > 0) {
       const server = stack.pop();
       visited.add(server);
       for (const n of ns.scan(server)) if (!visited.has(n)) stack.push(n);
-      for (const p of ns.ps(server)) if (p.filename.startsWith("ScorpionOS/workers/")) ns.kill(p.pid);
+      for (const p of ns.ps(server)) if (p.filename==="ScorpionOS/workers/worker.js") ns.kill(p.pid);
+    }
+  }
+}
+
+/**
+ * Toggle the hacking manager batch
+ */
+function tHackingBatch(ns, action) {
+  if (action.enable) ns.exec("ScorpionOS/functions/hacking-batch.js", "home", 1);
+  else {
+    for (const p of ns.ps("home")) if (p.filename === "ScorpionOS/functions/hacking-batch.js") ns.kill(p.pid);
+    const visited = new Set();
+    const stack = ["home"];
+    while (stack.length > 0) {
+      const server = stack.pop();
+      visited.add(server);
+      for (const n of ns.scan(server)) if (!visited.has(n)) stack.push(n);
+      for (const p of ns.ps(server)) if (p.filename.startsWith("ScorpionOS/workers/") && p.filename !=="ScorpionOS/workers/worker.js") ns.kill(p.pid);
     }
   }
 }

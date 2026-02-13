@@ -6,24 +6,12 @@ import { scanAll, gainAccess, checkBackdoors } from "../tools/utils.js";
 
 export async function main(ns) {
   ns.disableLog("ALL");
-  let target = null;
-  let hackWait = 0;
-  let growWait = 0;
-  let weakenHackWait = 0;
-  let weakenGrowWait = 0;
-
-  let hackThread = 0;
-  let growThread = 0;
-  let weakenHackThread = 0;
-  let weakenGrowThread = 0;
+  let targets = [];
 
   const cooldown = 200;
   const sleepTime = 500;
   const hackAmount = 0.9;
-
-  const weakenScript = "ScorpionOS/workers/weaken.js";
-  const growScript = "ScorpionOS/workers/grow.js";
-  const hackScript = "ScorpionOS/workers/hack.js";
+  const targetAmount = 1;
 
   while (true) {
     manageServer(ns);
@@ -33,82 +21,21 @@ export async function main(ns) {
     for (const server of list) {
       ns.toast("🔑 Backdoors possibles :" + server, "warning", 5000);
     }
-    const workers = listWorker(ns, servers);
-    const targetNew = bestTarget(ns, servers);
-    if (targetNew !== target) {
-      const minSec = ns.getServerMinSecurityLevel(targetNew);
-      const maxMoney = ns.getServerMaxMoney(targetNew);
-      while (ns.getServerMoneyAvailable(targetNew) < maxMoney * 0.99 || ns.getServerSecurityLevel(targetNew) > minSec + 0.1) {
-        await prep(ns, {
-          target: targetNew,
-          workers,
-          minSec,
-          maxMoney,
-          cooldown
-        });
-      }
-      const hackPercent = ns.hackAnalyze(targetNew);
-      hackThread = Math.ceil(hackAmount / hackPercent);
-
-      const secHack = ns.hackAnalyzeSecurity(hackThread);
-      weakenHackThread = Math.ceil(secHack / ns.weakenAnalyze(1)*1.1);
-
-      const growRatio = (1 + (hackAmount / (1 - hackAmount)))*1.1;
-      growThread = Math.ceil(ns.growthAnalyze(targetNew, growRatio)*1.1);
-
-      const secGrow = ns.growthAnalyzeSecurity(growThread);
-      weakenGrowThread = Math.ceil(secGrow / ns.weakenAnalyze(1)*1.1);
-
-      const tH = ns.getHackTime(targetNew);
-      const tG = ns.getGrowTime(targetNew);
-      const tW = ns.getWeakenTime(targetNew);
-
-      hackWait = tW - cooldown - tH;
-      weakenHackWait = 0;
-      growWait = tW - tG + cooldown;
-      weakenGrowWait = 2 * cooldown;
-
-      target = targetNew;
+    const targetsNew = bestTarget(ns, servers, targetAmount);
+    if (!sameTargets(targetsNew, targets)) {
+      targets = targetsNew;
+      for (const p of ns.ps()) if (p.filename === "ScorpionOS/workers/batch.js") ns.kill(p.pid);
+      for (const target of targets) ns.exec("ScorpionOS/workers/batch.js", "home", 1, target[0], cooldown, sleepTime, hackAmount);
     }
-    await ns.sleep(cooldown);
-    deployWorkers(ns, {
-      target,
-      script: hackScript,
-      thread: hackThread,
-      workers,
-      delay: hackWait
-    });
-    deployWorkers(ns, {
-      target,
-      script: weakenScript,
-      thread: weakenHackThread,
-      workers,
-      delay: weakenHackWait
-    });
-    deployWorkers(ns, {
-      target,
-      script: growScript,
-      thread: growThread,
-      workers,
-      delay: growWait
-    });
-    deployWorkers(ns, {
-      target,
-      script: weakenScript,
-      thread: weakenGrowThread,
-      workers,
-      delay: weakenGrowWait
-    });
-    await ns.sleep(sleepTime);
+    await ns.sleep(5000);
   }
 }
 
 /**
  * Get best target
  */
-function bestTarget(ns, servers) {
-  let best = null;
-  let bestScore = 0;
+function bestTarget(ns, servers, targetAmount) {
+  let targets = [];
   const pserv = ns.getPurchasedServers();
   const playerHackLevel = ns.getHackingLevel();
   const hackMult = ns.getHackingMultipliers();
@@ -132,12 +59,10 @@ function bestTarget(ns, servers) {
       player
     });
 
-    if (score > bestScore) {
-      best = s;
-      bestScore = score;
-    }
+    targets.push([s, score]);
   }
-  return best;
+  targets.sort((a, b) => b[1] - a[1]);
+  return targets.slice(0, targetAmount);
 }
 
 /**
@@ -175,25 +100,6 @@ function getScore(ns, s, data) {
 
     return score;
   }
-}
-
-/**
- * Get all workers
- */
-function listWorker(ns, servers) {
-  let workerList = [];
-  for (const s of servers) {
-    if (s === "home") continue;
-    if (!ns.hasRootAccess(s)) continue;
-
-    const ram = ns.getServerMaxRam(s);
-
-    if (ram < 2) continue;
-
-    workerList.push([s, ram]);
-  }
-  workerList.sort((a, b) => b[1] - a[1])
-  return workerList;
 }
 
 /**
@@ -236,71 +142,12 @@ function manageServer(ns) {
 }
 
 /**
- * Function to prepare targeted server
+ * Check if same targets
  */
-async function prep(ns, data) {
-  const { target, workers, minSec, maxMoney, cooldown } = data;
-
-  const currentSec = ns.getServerSecurityLevel(target);
-  const secToRemove = currentSec - minSec;
-  const weakenThread1 = Math.ceil(secToRemove / ns.weakenAnalyze(1)*1.1);
-
-  const currentMoney = ns.getServerMoneyAvailable(target);
-  const growRatio = maxMoney / Math.max(currentMoney, 1);
-  const growThread = Math.ceil(ns.growthAnalyze(target, growRatio)*1.1);
-
-  const secGrow = ns.growthAnalyzeSecurity(growThread);
-  const weakenThread2 = Math.ceil(secGrow / ns.weakenAnalyze(1)*1.1);
-
-  const tW = ns.getWeakenTime(target);
-  const tG = ns.getGrowTime(target);
-
-  const launchW1 = 0;
-  const launchG = tW - tG + cooldown;
-  const launchW2 = 2 * cooldown;
-
-  const weakenScript = "ScorpionOS/workers/weaken.js";
-  const growScript = "ScorpionOS/workers/grow.js";
-
-  if (weakenThread1 > 0) deployWorkers(ns, {
-    target,
-    script: weakenScript,
-    thread: weakenThread1,
-    workers,
-    delay: launchW1
-  });
-  if (growThread > 0) deployWorkers(ns, {
-    target,
-    script: growScript,
-    thread: growThread,
-    workers,
-    delay: launchG
-  });
-  if (weakenThread2 > 0) deployWorkers(ns, {
-    target,
-    script: weakenScript,
-    thread: weakenThread2,
-    workers,
-    delay: launchW2
-  });
-
-  await ns.sleep(tW + 2.5 * cooldown);
-}
-
-/**
- * Function to deploy worker
- */
-function deployWorkers(ns, data) {
-  const { target, script, thread, workers, delay } = data;
-  let remaining = thread;
-
-  for (const [server, ram] of workers) {
-    const free = Math.floor((ram - ns.getServerUsedRam(server)) / ns.getScriptRam(script));
-    if (free <= 0) continue;
-    const use = Math.min(free, remaining);
-    ns.scp(script, server);
-    ns.exec(script, server, use, target, delay);
-    remaining -= use;
-    if (remaining <= 0) break;
+function sameTargets(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i][0] !== b[i][0]) return false;
   }
+  return true;
 }
