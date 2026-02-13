@@ -95,7 +95,7 @@ function listWorker(ns, servers) {
     if (!ns.hasRootAccess(s)) continue;
 
     let ram = ns.getServerMaxRam(s);
-    if (s === "home") ram *= 0.75;
+    if (s === "home") ram -= 100;
 
     if (ram < 2) continue;
 
