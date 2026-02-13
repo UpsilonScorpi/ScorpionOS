@@ -32,7 +32,7 @@ export async function main(ns) {
     font-size: 12px;
     max-height: 90vh;
     overflow: hidden;
-    min-width: 900px;
+    min-width: 250px;
     box-shadow: 0 0 10px #000;
   `;
   doc.body.appendChild(panel);
@@ -142,6 +142,13 @@ export async function main(ns) {
       padding:4px 8px; margin:0; cursor:pointer; width:100%;
     ">
       <span id="icon-scr3">🔴</span> Hacking
+    </button>
+
+    <button id="btn-scr4" style="
+      background:#222; border:1px solid #555; color:#7fd1ff;
+      padding:4px 8px; margin:0; cursor:pointer; width:100%;
+    ">
+      <span id="icon-scr4">🟡</span> Stocks
     </button>
   `;
 
