@@ -49,7 +49,7 @@ function deployWorkers(ns, server, target) {
   if (!ns.hasRootAccess(server)) return;
 
   let freeRam = ns.getServerMaxRam(server);
-  if (server === "home") freeRam -= 50;
+  if (server === "home") freeRam -= 100;
   if (freeRam < ramPerThread) return;
 
   const threads = Math.floor(freeRam / ramPerThread);
@@ -88,7 +88,7 @@ function assignTarget(ns, servers) {
     }
 
     if (server === "home") {
-      workers.push([server, ns.getServerMaxRam(server) - 50]);
+      workers.push([server, ns.getServerMaxRam(server) - 100]);
     } else {
       workers.push([server, ns.getServerMaxRam(server)]);
     }
