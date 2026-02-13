@@ -19,7 +19,7 @@ export async function main(ns) {
 
   const cooldown = 200;
   const sleepTime = 500;
-  const hackAmount = 0.1;
+  const hackAmount = 0.9;
 
   const weakenScript = "weaken.js";
   const growScript = "grow.js";
