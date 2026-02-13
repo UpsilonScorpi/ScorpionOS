@@ -21,10 +21,10 @@ export async function main(ns) {
       ns.toast("🔑 Backdoors possibles :" + server, "warning", 5000);
     }
     const targetsNew = bestTarget(ns, servers);
-    if (!sameTargets(targetsNew,targets)) {
+    if (!sameTargets(targetsNew, targets)) {
       targets = targetsNew;
       for (const p of ns.ps()) if (p.filename === "ScorpionOS/workers/batch.js") ns.kill(p.pid);
-      for (const target of targets) ns.exec("ScorpionOS/workers/batch.js","home",1,target[0],cooldown,sleepTime,hackAmount);
+      for (const target of targets) ns.exec("ScorpionOS/workers/batch.js", "home", 1, target[0], cooldown, sleepTime, hackAmount);
     }
     await ns.sleep(5000);
   }
@@ -58,10 +58,10 @@ function bestTarget(ns, servers) {
       player
     });
 
-    targets.push([s,score]);
+    targets.push([s, score]);
   }
   targets.sort((a, b) => b[1] - a[1]);
-  return targets.slice(0,25);
+  return targets.slice(0, 25);
 }
 
 /**
@@ -148,9 +148,9 @@ function manageServer(ns) {
  * Check if same targets
  */
 function sameTargets(a, b) {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-        if (a[i][0] !== b[i][0]) return false;
-    }
-    return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i][0] !== b[i][0]) return false;
+  }
+  return true;
 }
