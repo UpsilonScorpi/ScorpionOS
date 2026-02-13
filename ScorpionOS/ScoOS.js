@@ -104,14 +104,21 @@ export async function main(ns) {
       background:#222; border:1px solid #555; color:#7fd1ff;
       padding:4px 8px; margin:0; cursor:pointer; width:100%;
     ">
-      <span id="icon-mod3">🟢</span> Network tree
+      <span id="icon-mod3">🟢</span> Private Server table
     </button>
 
     <button id="btn-mod4" style="
       background:#222; border:1px solid #555; color:#7fd1ff;
       padding:4px 8px; margin:0; cursor:pointer; width:100%;
     ">
-      <span id="icon-mod4">🟢</span> Guide
+      <span id="icon-mod4">🟢</span> Network tree
+    </button>
+
+    <button id="btn-mod5" style="
+      background:#222; border:1px solid #555; color:#7fd1ff;
+      padding:4px 8px; margin:0; cursor:pointer; width:100%;
+    ">
+      <span id="icon-mod5">🟢</span> Guide
     </button>
 
     <h4 style="color:#7fd1ff; margin-bottom:2px; margin-top:2px; padding:0;">Script</h4>
@@ -148,9 +155,19 @@ export async function main(ns) {
   `;
   col2.innerHTML = `<div id="server-table" style="font-size:11px; margin-top:4px;"></div>`;
 
-  /** Module 3 : Network Tree */
+  /** Module 3 : Private Server Table */
   const col3 = doc.createElement("div");
   col3.style = `
+    flex: 1;
+    line-height: 1.2;
+    border-left: 1px solid #333;
+    padding-left: 10px;
+  `;
+  col3.innerHTML = `<div id="private-server-table" style="font-size:11px; margin-top:4px;"></div>`;
+
+  /** Module 4 : Network Tree */
+  const col4 = doc.createElement("div");
+  col4.style = `
     flex: 1;
     white-space: pre;
     line-height: 1.2;
@@ -158,15 +175,15 @@ export async function main(ns) {
     padding-left: 10px;
   `;
 
-  /** Module 4 : Guide */
-  const col4 = doc.createElement("div");
-  col4.style = `
+  /** Module 5 : Guide */
+  const col5 = doc.createElement("div");
+  col5.style = `
     flex: 1;
     line-height: 1.2;
     border-left: 1px solid #333;
     padding-left: 10px;
   `;
-  col4.innerHTML = `
+  col5.innerHTML = `
     <h3 style="color:#7fd1ff; margin:0; padding:0;">Guide</h3>
     <p>Work in progress…</p>
   `;
@@ -175,11 +192,13 @@ export async function main(ns) {
   content.appendChild(col2);
   content.appendChild(col3);
   content.appendChild(col4);
+  content.appendChild(col5);
 
   /** Control Pad buttons logic */
   let showModule2 = true;
   let showModule3 = true;
   let showModule4 = true;
+  let showModule5 = true;
 
   let runScript1 = false;
   let runScript2 = false;
@@ -201,6 +220,12 @@ export async function main(ns) {
     showModule4 = !showModule4;
     col4.style.display = showModule4 ? "block" : "none";
     doc.getElementById("icon-mod4").textContent = showModule4 ? "🟢" : "🔴";
+  };
+
+  doc.getElementById("btn-mod5").onclick = () => {
+    showModule5 = !showModule5;
+    col5.style.display = showModule5 ? "block" : "none";
+    doc.getElementById("icon-mod5").textContent = showModule5 ? "🟢" : "🔴";
   };
 
   doc.getElementById("btn-scr1").onclick = () => {
@@ -364,11 +389,41 @@ export async function main(ns) {
     container.innerHTML = html;
   }
 
+  /** Server Table build */
+  function renderPrivServerTable() {
+    const pservList = ns.getPurchasedServers();
+    const container = doc.getElementById("private-server-table");
+    if (!container) return;
+
+    let html = `
+      <table style="border-collapse:collapse; width:100%;">
+        <tr>
+          <th style="text-align:left; padding:2px 4px;">Name</th>
+          <th style="text-align:left; padding:2px 4px;">Max RAM</th>
+        </tr>
+    `;
+
+    for (const s of pservList) {
+      const max = ns.getServerMaxRam(s);
+
+      html += `
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:2px 4px;">${s}</td>
+          <td style="padding:2px 4px;">${max}</td>
+        </tr>
+      `;
+    }
+
+    html += `</table>`;
+    container.innerHTML = html;
+  }
+
   /** Main loop */
   while (true) {
     if (!collapsed) {
-      if (showModule3) col3.innerHTML = `${buildTree()}`;
+      if (showModule4) col3.innerHTML = `${buildTree()}`;
       if (showModule2) renderServerTable();
+      if (showModule3) renderPrivServerTable();
     }
 
     /** Process queued action */
