@@ -422,7 +422,7 @@ function tHacking(ns, action) {
       const server = stack.pop();
       visited.add(server);
       for (const n of ns.scan(server)) if (!visited.has(n)) stack.push(n);
-      for (const p of ns.ps(server)) if (p.filename === "ScorpionOS/workers/worker.js") ns.kill(p.pid);
+      for (const p of ns.ps(server)) if (p.filename.startsWith("ScorpionOS/workers/")) ns.kill(p.pid);
     }
   }
 }
