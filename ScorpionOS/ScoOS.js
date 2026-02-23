@@ -157,6 +157,13 @@ export async function main(ns) {
     ">
       <span id="icon-scr5">🟡</span> Stocks
     </button>
+
+    <button id="btn-scr6" style="
+      background:#222; border:1px solid #555; color:#7fd1ff;
+      padding:4px 8px; margin:0; cursor:pointer; width:100%;
+    ">
+      <span id="icon-scr6">🟡</span> IPvGO
+    </button>
   `;
 
   /** Module 2 : Server Table */
@@ -219,6 +226,7 @@ export async function main(ns) {
   let runScript3 = false;
   let runScript4 = false;
   let runScript5 = false;
+  let runScript6 = false;
 
   doc.getElementById("btn-mod2").onclick = () => {
     showModule2 = !showModule2;
@@ -266,6 +274,18 @@ export async function main(ns) {
     runScript4 = !runScript4;
     actionQueue.push({ type: "hacking-batch", enable: runScript4 });
     doc.getElementById("icon-scr4").textContent = runScript4 ? "🟢" : "🔴";
+  };
+
+  doc.getElementById("btn-scr5").onclick = () => {
+    runScript5 = !runScript5;
+    actionQueue.push({ type: "stock", enable: runScript5 });
+    doc.getElementById("icon-scr5").textContent = runScript5 ? "🟢" : "🔴";
+  };
+
+  doc.getElementById("btn-scr6").onclick = () => {
+    runScript6 = !runScript6;
+    actionQueue.push({ type: "ipvgo", enable: runScript6 });
+    doc.getElementById("icon-scr6").textContent = runScript6 ? "🟢" : "🔴";
   };
 
   /** Collapse */

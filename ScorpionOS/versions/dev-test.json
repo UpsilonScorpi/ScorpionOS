@@ -1,14 +1,16 @@
 {
   "ScoOS": "ScoOS.js",
   "contract": "functions/contract.js",
+  "hacking-simple": "functions/hacking-simple.js",
   "hacking-batch": "functions/hacking-batch.js",
   "hacknet": "functions/hacknet.js",
+  "stock": "functions/stock.js",
+  "ipvgo": "functions/ipvgo.js",
   "solvers": "tools/solvers.js",
   "utils": "tools/utils.js",
   "grow": "workers/grow.js",
   "hack": "workers/hack.js",
   "weaken": "workers/weaken.js",
   "batch": "workers/batch.js",
-  "hacking-simple": "functions/hacking-simple.js",
   "worker": "workers/worker.js"
 }
